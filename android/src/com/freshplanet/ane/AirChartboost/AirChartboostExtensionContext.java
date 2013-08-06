@@ -48,8 +48,8 @@ public class AirChartboostExtensionContext extends FREContext
 		functions.put("showInterstitial", new ShowInterstitialFunction());
 		functions.put("cacheInterstitial", new CacheInterstitialFunction());
 		functions.put("hasCachedInterstitial", new HasCachedInterstitialFunction());
-//		functions.put("showMoreApps", new ShowMoreAppsFunction());
-//		functions.put("cacheMoreApps", new CacheMoreAppsFunction());
+		functions.put("showMoreApps", new ShowMoreAppsFunction());
+		functions.put("cacheMoreApps", new CacheMoreAppsFunction());
 
 		return functions;
 	}
