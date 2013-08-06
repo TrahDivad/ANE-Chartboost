@@ -1,19 +1,19 @@
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //  Copyright 2012 Freshplanet (http://freshplanet.com | opensource@freshplanet.com)
-//  
+//
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
-//  
+//
 //    http://www.apache.org/licenses/LICENSE-2.0
-//  
+//
 //  Unless required by applicable law or agreed to in writing, software
 //  distributed under the License is distributed on an "AS IS" BASIS,
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
-//  
+//
 //////////////////////////////////////////////////////////////////////////////////////
 
 #import "AirChartboost.h"
@@ -90,6 +90,46 @@ static AirChartboost *sharedInstance = nil;
     }
 }
 
+- (void)didCacheMoreApps
+{
+    if (AirChartboostCtx != nil)
+    {
+        FREDispatchStatusEventAsync(AirChartboostCtx, (const uint8_t *)"DidCacheMoreApps", NULL);
+    }
+}
+
+- (void)didClickMoreApps
+{
+    if (AirChartboostCtx != nil)
+    {
+        FREDispatchStatusEventAsync(AirChartboostCtx, (const uint8_t *)"DidClickMoreApps", NULL);
+    }
+}
+
+- (void)didCloseMoreApps
+{
+    if (AirChartboostCtx != nil)
+    {
+        FREDispatchStatusEventAsync(AirChartboostCtx, (const uint8_t *)"DidCloseMoreApps", NULL);
+    }
+}
+
+- (void)didDismissMoreApps
+{
+    if (AirChartboostCtx != nil)
+    {
+        FREDispatchStatusEventAsync(AirChartboostCtx, (const uint8_t *)"DidDismissMoreApps", NULL);
+    }
+}
+
+- (void)didFailToLoadMoreApps
+{
+    if (AirChartboostCtx != nil)
+    {
+        FREDispatchStatusEventAsync(AirChartboostCtx, (const uint8_t *)"DidFailToLoadMoreApps", NULL);
+    }
+}
+
 @end
 
 
@@ -98,27 +138,27 @@ static AirChartboost *sharedInstance = nil;
 DEFINE_ANE_FUNCTION(CBStartSession)
 {
     uint32_t stringLength;
-    
+
     const uint8_t *valueAppId;
     if (FREGetObjectAsUTF8(argv[0], &stringLength, &valueAppId) != FRE_OK)
     {
         return nil;
     }
     NSString *appId = [NSString stringWithUTF8String:(char*)valueAppId];
-    
+
     const uint8_t *valueAppSignature;
     if (FREGetObjectAsUTF8(argv[1], &stringLength, &valueAppSignature) != FRE_OK)
     {
         return nil;
     }
     NSString *appSignature = [NSString stringWithUTF8String:(char*)valueAppSignature];
-    
+
     Chartboost *chartboost = [Chartboost sharedChartboost];
     chartboost.delegate = [AirChartboost sharedInstance];
     chartboost.appId = appId;
     chartboost.appSignature = appSignature;
     [chartboost startSession];
-    
+
     return nil;
 }
 
@@ -139,7 +179,7 @@ DEFINE_ANE_FUNCTION(CBShowInterstitial)
     {
         [[Chartboost sharedChartboost] showInterstitial];
     }
-    
+
     return nil;
 }
 
@@ -160,7 +200,7 @@ DEFINE_ANE_FUNCTION(CBCacheInterstitial)
     {
         [[Chartboost sharedChartboost] cacheInterstitial];
     }
-    
+
     return nil;
 }
 
@@ -182,15 +222,27 @@ DEFINE_ANE_FUNCTION(CBHasCachedInterstitial)
     {
         hasCachedInterstitial = [[Chartboost sharedChartboost] hasCachedInterstitial];
     }
-    
+
     FREObject freObject;
     FREResult freResult = FRENewObjectFromBool(YES, &freObject);
     if (freResult != FRE_OK)
     {
         NSLog(@"[AirChartboost] FREResult = %d", freResult);
     }
-    
+
     return freObject;
+}
+
+DEFINE_ANE_FUNCTION(CBShowMoreApps)
+{
+    [[Chartboost sharedChartboost] showMoreApps];
+    return nil;
+}
+
+DEFINE_ANE_FUNCTION(CBCacheMoreApps)
+{
+    [[Chartboost sharedChartboost] cacheInterstitial];
+    return nil;
 }
 
 
@@ -200,9 +252,9 @@ DEFINE_ANE_FUNCTION(CBHasCachedInterstitial)
  * The extension initializer is called the first time the ActionScript side of the extension
  * calls ExtensionContext.createExtensionContext() for any context.
  *
- * Please note: this should be same as the <initializer> specified in the extension.xml 
+ * Please note: this should be same as the <initializer> specified in the extension.xml
  */
-void AirChartboostExtInitializer(void** extDataToSet, FREContextInitializer* ctxInitializerToSet, FREContextFinalizer* ctxFinalizerToSet) 
+void AirChartboostExtInitializer(void** extDataToSet, FREContextInitializer* ctxInitializerToSet, FREContextFinalizer* ctxFinalizerToSet)
 {
     NSLog(@"Entering AirChartboostExtInitializer()");
 
@@ -216,9 +268,9 @@ void AirChartboostExtInitializer(void** extDataToSet, FREContextInitializer* ctx
 /* AirChartboostExtFinalizer()
  * The extension finalizer is called when the runtime unloads the extension. However, it may not always called.
  *
- * Please note: this should be same as the <finalizer> specified in the extension.xml 
+ * Please note: this should be same as the <finalizer> specified in the extension.xml
  */
-void AirChartboostExtFinalizer(void* extData) 
+void AirChartboostExtFinalizer(void* extData)
 {
     NSLog(@"Entering AirChartboostExtFinalizer()");
 
@@ -237,25 +289,33 @@ void AirChartboostContextInitializer(void* extData, const uint8_t* ctxType, FREC
     /* The following code describes the functions that are exposed by this native extension to the ActionScript code.
      * As a sample, the function isSupported is being provided.
      */
-    *numFunctionsToTest = 4;
+    *numFunctionsToTest = 6;
 
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * (*numFunctionsToTest));
-    
+
     func[0].name = (const uint8_t*) "startSession";
     func[0].functionData = NULL;
     func[0].function = &CBStartSession;
-    
+
     func[1].name = (const uint8_t*) "showInterstitial";
     func[1].functionData = NULL;
     func[1].function = &CBShowInterstitial;
-    
+
     func[2].name = (const uint8_t*) "cacheInterstitial";
     func[2].functionData = NULL;
     func[2].function = &CBCacheInterstitial;
-    
+
     func[3].name = (const uint8_t*) "hasCachedInterstitial";
     func[3].functionData = NULL;
     func[3].function = &CBHasCachedInterstitial;
+
+    func[4].name = (const uint8_t*) "showMoreApps";
+    func[4].functionData = NULL;
+    func[4].function = &CBShowMoreApps;
+
+    func[5].name = (const uint8_t*) "cacheMoreApps";
+    func[5].functionData = NULL;
+    func[5].function = &CBCacheMoreApps;
 
     *functionsToSet = func;
 
@@ -269,7 +329,7 @@ void AirChartboostContextInitializer(void* extData, const uint8_t* ctxType, FREC
  * calls the ExtensionContext instance's dispose() method.
  * If the AIR runtime garbage collector disposes of the ExtensionContext instance, the runtime also calls AirChartboostContextFinalizer().
  */
-void AirChartboostContextFinalizer(FREContext ctx) 
+void AirChartboostContextFinalizer(FREContext ctx)
 {
     NSLog(@"Entering AirChartboostContextFinalizer()");
 

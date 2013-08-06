@@ -1,19 +1,19 @@
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //  Copyright 2012 Freshplanet (http://freshplanet.com | opensource@freshplanet.com)
-//  
+//
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
-//  
+//
 //    http://www.apache.org/licenses/LICENSE-2.0
-//  
+//
 //  Unless required by applicable law or agreed to in writing, software
 //  distributed under the License is distributed on an "AS IS" BASIS,
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
-//  
+//
 //////////////////////////////////////////////////////////////////////////////////////
 
 package com.freshplanet.ane
@@ -22,19 +22,19 @@ package com.freshplanet.ane
 	import flash.events.StatusEvent;
 	import flash.external.ExtensionContext;
 	import flash.system.Capabilities;
-	
+
 	/**
 	 * AirChartboost replicates Chartboost SDK APIs.<br><br>
-	 * 
+	 *
 	 * Note that this class is a singleton. Do not try to instanciate it, but call
 	 * <code>getInstance()</code> instead.<br><br>
-	 * 
+	 *
 	 * Chartboost SDK delegate protocol is replicated through a set of events
 	 * described in the class <code>AirChartboostEvent</code>. These events
 	 * are dispatched by the AirChartboost instance.<br><br>
-	 * 
+	 *
 	 * Note that Chartboost "More Apps" feature is not implemented yet.
-	 * 
+	 *
 	 * @see AirChartboostEvent
 	 */
 	public class AirChartboost extends EventDispatcher
@@ -42,7 +42,7 @@ package com.freshplanet.ane
 		private static var _instance:AirChartboost;
 
 		private var extCtx:ExtensionContext = null;
-		
+
 		public function AirChartboost()
 		{
 			if (!_instance)
@@ -51,7 +51,7 @@ package com.freshplanet.ane
 				if (extCtx != null)
 				{
 					extCtx.addEventListener(StatusEvent.STATUS, onStatus);
-				} 
+				}
 				else
 				{
 					trace('[Chartboost] Error - Extension Context is null.');
@@ -63,19 +63,19 @@ package com.freshplanet.ane
 				throw Error( 'This is a singleton, use getInstance(), do not call the constructor directly.');
 			}
 		}
-		
+
 		public static function getInstance() : AirChartboost
 		{
 			return _instance ? _instance : new AirChartboost();
 		}
-		
-		
+
+
 		// --------------------------------------------------------------------------------------//
 		//																						 //
 		// 							   			PUBLIC API										 //
 		// 																						 //
 		// --------------------------------------------------------------------------------------//
-		
+
 		/**
 		 * Return true if Chartboost is supported on the current device
 		 * (iOS and Android), false otherwise.
@@ -84,10 +84,10 @@ package com.freshplanet.ane
 		{
 			return Capabilities.manufacturer.indexOf('iOS') > -1 || Capabilities.manufacturer.indexOf('Android') > -1;
 		}
-		
+
 		/**
 		 * Notify the beginning of a user session
-		 * 
+		 *
 		 * @param appID String: Your Chartboost application ID.
 		 * @param appSignature String: Your Chartboost application signature.
 		 */
@@ -96,10 +96,10 @@ package com.freshplanet.ane
 			if (isChartboostSupported)
 				extCtx.call('startSession', appID, appSignature);
 		}
-		
+
 		/**
 		 * Show an interstitial, optionally with a location identifier.
-		 * 
+		 *
 		 * @param location String (optional): A Chartboost location identifier.
 		 */
 		public function showInterstitial( location : String = null ) : void
@@ -110,10 +110,10 @@ package com.freshplanet.ane
 				else extCtx.call('showInterstitial');
 			}
 		}
-		
+
 		/**
 		 * Start caching an interstitial, optionally with a location identifier.
-		 * 
+		 *
 		 * @param location String (optional): A Chartboost location identifier.
 		 */
 		public function cacheInterstitial( location : String = null ) : void
@@ -124,10 +124,10 @@ package com.freshplanet.ane
 				else extCtx.call('cacheInterstitial');
 			}
 		}
-		
+
 		/**
 		 * Check if an interstitial is cached, optionally with a location identifier.
-		 * 
+		 *
 		 * @param location String (optional): A Chartboost location identifier.
 		 */
 		public function hasCachedInterstitial( location : String = null ) : Boolean
@@ -139,44 +139,86 @@ package com.freshplanet.ane
 			}
 			else return false;
 		}
-		
-		
+
+		/**
+		 * Show the more apps page.
+		 */
+		public function showMoreApps() : void
+		{
+			if (isChartboostSupported)
+			{
+				extCtx.call('showMoreApps');
+			}
+		}
+
+		/**
+		 * Start caching the show more apps page.
+		 */
+		public function cacheMoreApps() : void
+		{
+			if (isChartboostSupported)
+			{
+				extCtx.call('cacheMoreApps');
+			}
+		}
+
+
 		// --------------------------------------------------------------------------------------//
 		//																						 //
 		// 							   		EVENT LISTENERS										 //
 		// 																						 //
 		// --------------------------------------------------------------------------------------//
-		
+
 		private function onStatus( event : StatusEvent ) : void
 		{
 			var e:AirChartboostEvent;
-			
+
 			switch (event.code)
 			{
 				case AirChartboostEvent.DID_DISMISS_INTERSTITIAL:
 					e = new AirChartboostEvent(AirChartboostEvent.DID_DISMISS_INTERSTITIAL, event.level);
 					break;
-				
+
 				case AirChartboostEvent.DID_CLOSE_INTERSTITIAL:
 					e = new AirChartboostEvent(AirChartboostEvent.DID_CLOSE_INTERSTITIAL, event.level);
 					break;
-				
+
 				case AirChartboostEvent.DID_CLICK_INTERSTITIAL:
 					e = new AirChartboostEvent(AirChartboostEvent.DID_CLICK_INTERSTITIAL, event.level);
 					break;
-				
+
 				case AirChartboostEvent.DID_FAIL_TO_LOAD_INTERSTITIAL:
 					e = new AirChartboostEvent(AirChartboostEvent.DID_FAIL_TO_LOAD_INTERSTITIAL, event.level);
 					break;
-				
+
 				case AirChartboostEvent.DID_CACHE_INTERSTITIAL:
 					e = new AirChartboostEvent(AirChartboostEvent.DID_CACHE_INTERSTITIAL, event.level);
 					break;
-				
+
+				case AirChartboostEvent.DID_CACHE_MOREAPPS:
+					e = new AirChartboostEvent(AirChartboostEvent.DID_CACHE_MOREAPPS);
+					break;
+
+				case AirChartboostEvent.DID_DISMISS_MOREAPPS:
+					e = new AirChartboostEvent(AirChartboostEvent.DID_DISMISS_MOREAPPS);
+					break;
+
+				case AirChartboostEvent.DID_CLOSE_MOREAPPS:
+					e = new AirChartboostEvent(AirChartboostEvent.DID_CLOSE_MOREAPPS);
+					break;
+
+				case AirChartboostEvent.DID_CLICK_MOREAPPS:
+					e = new AirChartboostEvent(AirChartboostEvent.DID_CLICK_MOREAPPS);
+					break;
+
+				case AirChartboostEvent.DID_SHOW_MOREAPPS:
+					e = new AirChartboostEvent(AirChartboostEvent.DID_SHOW_MOREAPPS);
+					break;
+
 				case "LOGGING":
 					trace('[Chartboost] ' + event.level);
 			}
-			
+
 			if (e) dispatchEvent(e);
 		}
 	}
